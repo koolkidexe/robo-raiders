@@ -1,22 +1,20 @@
+import streamlit as st
 import random
 
-# --- Setup ---
-islands = ["Island A", "Island B", "Island C", "Island D", "Island E"]
-correct_island = random.randint(0, 4)
+# --- Setup state ---
+if "initialized" not in st.session_state:
+    st.session_state.islands = ["Island A", "Island B", "Island C", "Island D", "Island E"]
+    st.session_state.correct_island = random.randint(0, 4)
+    st.session_state.clues_found = [None] * 5
+    st.session_state.excavated = [False] * 5
+    st.session_state.turns = 10
+    st.session_state.score = 0
+    st.session_state.game_over = False
+    st.session_state.message = "🌍 Welcome to the Archaeology Survey Game!"
 
-# Track state
-clues_found = [None] * 5   # stores clues after survey
-excavated = [False] * 5    # has the island been excavated?
-turns = 10                 # limited number of turns
-score = 0                  # points from artifacts
-
-print("🌍 Welcome to the Archaeology Survey Game!")
-print("You are helping an archaeologist search 5 islands for the lost ruins.")
-print("You have 10 turns to survey and excavate wisely!\n")
-
+# --- Functions ---
 def survey(island_index):
-    #Check surface clues based on distance from ruins
-    distance = abs(island_index - correct_island)
+    distance = abs(island_index - st.session_state.correct_island)
     if distance == 0:
         clue = "🏺 Ruins markings on the surface!"
     elif distance == 1:
@@ -25,25 +23,21 @@ def survey(island_index):
         clue = "🦴 Ancient bones buried shallowly."
     else:
         clue = "🌊 Just shells and sand."
-    clues_found[island_index] = clue
-    print(f"Survey results for {islands[island_index]}: {clue}")
+    st.session_state.clues_found[island_index] = clue
+    st.session_state.message = f"Survey results for {st.session_state.islands[island_index]}: {clue}"
 
 def excavate(island_index):
-    #Attempt a dig on an island
-    global score
+    if st.session_state.excavated[island_index]:
+        st.session_state.message = f"You already excavated {st.session_state.islands[island_index]}. Nothing new."
+        return
 
-    if excavated[island_index]:
-        print(f"You already excavated {islands[island_index]}. Nothing new.")
-        return False
+    st.session_state.excavated[island_index] = True
 
-    excavated[island_index] = True
-
-    if island_index == correct_island:
-        print(f"🎉 You excavated {islands[island_index]} and discovered the ancient ruins!")
-        score += 100
-        return True
+    if island_index == st.session_state.correct_island:
+        st.session_state.score += 100
+        st.session_state.message = f"🎉 You excavated {st.session_state.islands[island_index]} and discovered the ancient ruins! 🏆 Final Score: {st.session_state.score}"
+        st.session_state.game_over = True
     else:
-        #Random artifact finds
         finds = [
             ("🪨 Broken pottery shard", 5),
             ("🪓 Old stone tool", 10),
@@ -52,56 +46,41 @@ def excavate(island_index):
             ("❌ Nothing significant", 0)
         ]
         find, points = random.choice(finds)
-        score += points
-        print(f"Excavation at {islands[island_index]}: {find} (+{points} points)")
-        return False
+        st.session_state.score += points
+        st.session_state.message = f"Excavation at {st.session_state.islands[island_index]}: {find} (+{points} points)"
 
-def show_map():
-    #Show what we know so far
-    print("\n📜 Current Expedition Notes:")
-    for i, name in enumerate(islands):
-        status = []
-        if clues_found[i]:
-            status.append(clues_found[i])
-        if excavated[i]:
-            status.append("⛏ Excavated")
-        if not status:
-            status.append("Unknown")
-        print(f"- {name}: " + " | ".join(status))
-    print(f"⭐ Current Score: {score}\n")
+    st.session_state.turns -= 1
+    if st.session_state.turns <= 0 and not st.session_state.game_over:
+        st.session_state.message += f"\n⏳ You ran out of time! The ruins remain undiscovered... Final Score: {st.session_state.score}"
+        st.session_state.game_over = True
 
-# --- Game Loop ---
-while turns > 0:
-    print(f"\nTurns remaining: {turns} | Score: {score}")
-    action = input("Choose an action (survey, excavate, map, quit): ").lower()
+# --- UI ---
+st.title("🏝️ Archaeology Survey Game")
+st.write("Help an archaeologist survey 5 islands and find the lost ruins. You have 10 turns!")
 
-    if action == "quit":
-        print("Expedition ended early. The ruins remain hidden.")
-        break
-    elif action == "map":
-        show_map()
-        continue
-    elif action in ["survey", "excavate"]:
-        try:
-            choice = int(input("Pick an island (1-5): ")) - 1
-            if choice < 0 or choice > 4:
-                print("Invalid island number.")
-                continue
-        except ValueError:
-            print("Please enter a number.")
-            continue
+st.write(f"⭐ Current Score: {st.session_state.score}")
+st.write(f"⏳ Turns Remaining: {st.session_state.turns}")
 
-        if action == "survey":
-            survey(choice)
-        elif action == "excavate" and excavate(choice):
-                print(f"\n🏆 Final Score: {score}")
-                break
-    else:
-        print("Invalid action. Try again.")
-        continue
+st.info(st.session_state.message)
 
-    turns -= 1
+if not st.session_state.game_over:
+    for i, name in enumerate(st.session_state.islands):
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button(f"Survey {name}", key=f"survey_{i}"):
+                survey(i)
+        with col2:
+            if st.button(f"Excavate {name}", key=f"excavate_{i}"):
+                excavate(i)
 
-if turns == 0 and not excavated[correct_island]:
-    print("\n⏳ You ran out of time! The ruins remain undiscovered...")
-    print(f"Final Score: {score}")
+# Expedition Notes
+st.subheader("📜 Expedition Notes")
+for i, name in enumerate(st.session_state.islands):
+    status = []
+    if st.session_state.clues_found[i]:
+        status.append(st.session_state.clues_found[i])
+    if st.session_state.excavated[i]:
+        status.append("⛏ Excavated")
+    if not status:
+        status.append("Unknown")
+    st.write(f"- {name}: {' | '.join(status)}")
