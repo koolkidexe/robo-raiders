@@ -11,7 +11,7 @@ if "initialized" not in st.session_state:
     st.session_state.score = 0
     st.session_state.game_over = False
     st.session_state.message = "🌍 Welcome to the Archaeology Survey Game!"
-    st.session_state.action_taken = False   # track if player already acted this turn
+    st.session_state.action_taken = False
     st.session_state.initialized = True
 
 # --- Game functions ---
@@ -92,6 +92,24 @@ st.sidebar.write(f"⏳ Turns Left: **{st.session_state.turns}**")
 if st.sidebar.button("🔄 Restart Game"):
     reset_game()
 
+# --- Instructions ---
+with st.expander("ℹ️ How to Play"):
+    st.markdown("""
+    **Your Mission**: Find the hidden ruins on one of 5 islands before you run out of turns!
+
+    - **Survey** 🔎 → Searches the surface.  
+      - 🏺 *Ruins markings*: You are on the correct island!  
+      - 🔎 *Pottery fragments*: Ruins are very close.  
+      - 🦴 *Bones*: Some activity nearby, but ruins are further away.  
+      - 🌊 *Shells and sand*: Nothing important nearby.  
+
+    - **Excavate** ⛏ → Digs deeper into the island.  
+      - If it's the correct island, you win **100 points** and find the ruins! 🎉  
+      - If not, you may still find **artifacts** worth points (tools, pottery, bones, charcoal).  
+
+    **Turns**: Each action (Survey or Excavate) uses 1 turn. You start with **10 turns**.  
+    """)
+
 # Show message
 st.info(st.session_state.message)
 
@@ -107,16 +125,4 @@ if not st.session_state.game_over:
                 st.button(f"Excavate {name}", key=f"excavate_{i}", on_click=excavate, args=(i,))
     else:
         # Show "Next Turn" button
-        st.button("➡️ Next Turn", on_click=next_turn)
-
-# Expedition notes
-st.subheader("📜 Expedition Notes")
-for i, name in enumerate(st.session_state.islands):
-    status = []
-    if st.session_state.clues_found[i]:
-        status.append(st.session_state.clues_found[i])
-    if st.session_state.excavated[i]:
-        status.append("⛏ Excavated")
-    if not status:
-        status.append("Unknown")
-    st.write(f"- {name}: {' | '.join(status)}")
+        st.button("➡️ Next
