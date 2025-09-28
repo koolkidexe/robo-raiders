@@ -1,46 +1,57 @@
+import streamlit as st
 import random
 
-#defining map variables
-map_size = 5
-t_row = random.randint(0,map_size-1)
-t_column = random.randint(0,map_size-1)
+# --- Initialize state ---
+if "initialized" not in st.session_state:
+    st.session_state.map_size = 5
+    st.session_state.t_row = random.randint(0, st.session_state.map_size - 1)
+    st.session_state.t_column = random.randint(0, st.session_state.map_size - 1)
+    st.session_state.game_map = [["🏝" for _ in range(st.session_state.map_size)] for _ in range(st.session_state.map_size)]
+    st.session_state.game_over = False
+    st.session_state.message = "Welcome to Treasure Island! Find the hidden treasure."
+    st.session_state.initialized = True
 
-game_map = [["🏝" for i in range(map_size)]for i in range(map_size)]
+def reset_game():
+    st.session_state.t_row = random.randint(0, st.session_state.map_size - 1)
+    st.session_state.t_column = random.randint(0, st.session_state.map_size - 1)
+    st.session_state.game_map = [["🏝" for _ in range(st.session_state.map_size)] for _ in range(st.session_state.map_size)]
+    st.session_state.game_over = False
+    st.session_state.message = "New game started! Find the hidden treasure."
 
-def print_map():
-  for row in game_map:
-    print(" ").join(row)
-    
-  print()
+def guess(row, col):
+    if st.session_state.game_over:
+        return
 
-
-print("Welcome to Treasure Island! You have been tasked with finding buried treausre on one of these islands!")
-
-print_map()
-
-while True:
-  guess_row = int(input("Please enter the row of the island you want to search: ")) - 1
-  guess_column = int(input("Please enter the column of the island you want to search: ")) - 1
-  
-  if guess_row < 0 or guess_row >= 5 or guess_column <0 or guess_column >= 5:
-    print("Please enter a valid number between 1-5 inclusive:")
-    
-    continue
-  
-  if guess_row == t_row and guess_column == t_column:
-    game_map[guess_row][guess_column] = "🪙"
-    
-    print_map()
-    print("You successfully found the treausre! You win!")
-    
-    break
-  else:
-    if game_map[guess_row][guess_column] == "☠":
-      print("You already searched there! Please search a new island!")
-      
+    if row == st.session_state.t_row and col == st.session_state.t_column:
+        st.session_state.game_map[row][col] = "🪙"
+        st.session_state.message = "🎉 You found the treasure! You win!"
+        st.session_state.game_over = True
     else:
-      game_map[guess_row][guess_column] = "☠"
-      
-      print("You found no treausre! Try searching a different island!")
-      
-      print_map()
+        if st.session_state.game_map[row][col] == "☠":
+            st.session_state.message = "⚠️ You already searched there! Try a new island."
+        else:
+            st.session_state.game_map[row][col] = "☠"
+            st.session_state.message = "❌ No treasure here! Keep searching."
+
+# --- UI ---
+st.title("🏝️ Treasure Island")
+st.markdown("You are tasked with finding buried treasure on one of these islands! Tap to search.")
+
+st.info(st.session_state.message)
+
+# Render grid as buttons
+for i in range(st.session_state.map_size):
+    cols = st.columns(st.session_state.map_size)
+    for j in range(st.session_state.map_size):
+        with cols[j]:
+            st.button(
+                st.session_state.game_map[i][j],
+                key=f"{i}_{j}",
+                on_click=guess,
+                args=(i, j),
+                disabled=st.session_state.game_over
+            )
+
+st.sidebar.header("⚙️ Controls")
+if st.sidebar.button("🔄 Restart Game"):
+    reset_game()
