@@ -62,7 +62,7 @@ def end_turn():
 
 # --- UI ---
 st.title("🏛️ Archaeology Expedition: Funding Challenge")
-st.markdown("Middle schoolers, your mission is to raise money and help archaeologists make discoveries!")
+st.markdown("Your mission is to raise money and help archaeologists make discoveries!")
 
 # Display stats
 st.sidebar.header("📊 Expedition Status")
