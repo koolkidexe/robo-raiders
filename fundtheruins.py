@@ -18,7 +18,7 @@ def reset_game():
     st.session_state.game_over = False
 
 def fundraise():
-    if st.session_state.turns <= 0:
+    if st.session_state.turns <= 0 or st.session_state.game_over:
         return
     raised = random.randint(5, 20)
     st.session_state.funds += raised
@@ -26,26 +26,28 @@ def fundraise():
     end_turn()
 
 def excavate():
-    if st.session_state.turns <= 0:
+    if st.session_state.turns <= 0 or st.session_state.game_over:
         return
     if st.session_state.funds < 15:
-        st.session_state.message = "⚠️ Not enough funds to excavate. Try fundraising!"
-    else:
-        st.session_state.funds -= 15
-        finds = [
-            ("🪨 Broken pottery", 1),
-            ("🪓 Ancient tool", 2),
-            ("🦴 Human bones", 2),
-            ("🏺 Rare vase", 5),
-            ("❌ Nothing found", 0)
-        ]
-        find, points = random.choice(finds)
-        st.session_state.artifacts += points
-        st.session_state.message = f"You excavated and found: {find} (+{points} artifacts)"
+        st.session_state.message = "⚠️ Not enough funds to excavate. Try fundraising instead!"
+        # 🚫 no turn lost here
+        return
+    # Excavation happens
+    st.session_state.funds -= 15
+    finds = [
+        ("🪨 Broken pottery", 1),
+        ("🪓 Ancient tool", 2),
+        ("🦴 Human bones", 2),
+        ("🏺 Rare vase", 5),
+        ("❌ Nothing found", 0)
+    ]
+    find, points = random.choice(finds)
+    st.session_state.artifacts += points
+    st.session_state.message = f"⛏️ Excavation success! You found: {find} (+{points} artifacts)"
     end_turn()
 
 def educate():
-    if st.session_state.turns <= 0:
+    if st.session_state.turns <= 0 or st.session_state.game_over:
         return
     gained = random.randint(3, 10)
     st.session_state.funds += gained
@@ -55,7 +57,7 @@ def educate():
 def end_turn():
     st.session_state.turns -= 1
     if st.session_state.turns <= 0:
-        st.session_state.message += f"\n⏳ Expedition over! You collected **{st.session_state.artifacts} artifacts** and ended with **${st.session_state.funds}**."
+        st.session_state.message = f"⏳ Expedition over! You collected **{st.session_state.artifacts} artifacts** and ended with **${st.session_state.funds}**."
         st.session_state.game_over = True
 
 # --- UI ---
