@@ -1,7 +1,7 @@
 import streamlit as st
 import random
 
-# --- Setup state ---
+# --- Initialize state ---
 if "initialized" not in st.session_state:
     st.session_state.islands = ["Island A", "Island B", "Island C", "Island D", "Island E"]
     st.session_state.correct_island = random.randint(0, 4)
@@ -11,8 +11,10 @@ if "initialized" not in st.session_state:
     st.session_state.score = 0
     st.session_state.game_over = False
     st.session_state.message = "🌍 Welcome to the Archaeology Survey Game!"
+    st.session_state.action_taken = False   # track if player already acted this turn
+    st.session_state.initialized = True
 
-# --- Functions ---
+# --- Game functions ---
 def survey(island_index):
     distance = abs(island_index - st.session_state.correct_island)
     if distance == 0:
@@ -24,18 +26,22 @@ def survey(island_index):
     else:
         clue = "🌊 Just shells and sand."
     st.session_state.clues_found[island_index] = clue
-    st.session_state.message = f"Survey results for {st.session_state.islands[island_index]}: {clue}"
+    st.session_state.message = f"Survey at {st.session_state.islands[island_index]}: {clue}"
+    st.session_state.turns -= 1
+    st.session_state.action_taken = True
+    check_end()
 
 def excavate(island_index):
     if st.session_state.excavated[island_index]:
-        st.session_state.message = f"You already excavated {st.session_state.islands[island_index]}. Nothing new."
+        st.session_state.message = f"You already excavated {st.session_state.islands[island_index]}."
+        st.session_state.action_taken = True
         return
 
     st.session_state.excavated[island_index] = True
 
     if island_index == st.session_state.correct_island:
         st.session_state.score += 100
-        st.session_state.message = f"🎉 You excavated {st.session_state.islands[island_index]} and discovered the ancient ruins! 🏆 Final Score: {st.session_state.score}"
+        st.session_state.message = f"🎉 You excavated {st.session_state.islands[island_index]} and found the ruins! 🏆 Final Score: {st.session_state.score}"
         st.session_state.game_over = True
     else:
         finds = [
@@ -50,30 +56,60 @@ def excavate(island_index):
         st.session_state.message = f"Excavation at {st.session_state.islands[island_index]}: {find} (+{points} points)"
 
     st.session_state.turns -= 1
+    st.session_state.action_taken = True
+    check_end()
+
+def check_end():
     if st.session_state.turns <= 0 and not st.session_state.game_over:
-        st.session_state.message += f"\n⏳ You ran out of time! The ruins remain undiscovered... Final Score: {st.session_state.score}"
+        st.session_state.message += f"\n⏳ Out of time! The ruins remain undiscovered. Final Score: {st.session_state.score}"
         st.session_state.game_over = True
+
+def reset_game():
+    st.session_state.islands = ["Island A", "Island B", "Island C", "Island D", "Island E"]
+    st.session_state.correct_island = random.randint(0, 4)
+    st.session_state.clues_found = [None] * 5
+    st.session_state.excavated = [False] * 5
+    st.session_state.turns = 10
+    st.session_state.score = 0
+    st.session_state.game_over = False
+    st.session_state.message = "🌍 New expedition started!"
+    st.session_state.action_taken = False
+    st.session_state.initialized = True
+
+def next_turn():
+    st.session_state.message = "Choose your next action."
+    st.session_state.action_taken = False
 
 # --- UI ---
 st.title("🏝️ Archaeology Survey Game")
-st.write("Help an archaeologist survey 5 islands and find the lost ruins. You have 10 turns!")
+st.markdown("Help an archaeologist survey 5 islands and uncover the lost ruins. You have **10 turns**!")
 
-st.write(f"⭐ Current Score: {st.session_state.score}")
-st.write(f"⏳ Turns Remaining: {st.session_state.turns}")
+# Sidebar for stats
+st.sidebar.header("📊 Expedition Status")
+st.sidebar.write(f"⭐ Score: **{st.session_state.score}**")
+st.sidebar.write(f"⏳ Turns Left: **{st.session_state.turns}**")
 
+if st.sidebar.button("🔄 Restart Game"):
+    reset_game()
+
+# Show message
 st.info(st.session_state.message)
 
+# Action buttons (only if no action taken yet and game not over)
 if not st.session_state.game_over:
-    for i, name in enumerate(st.session_state.islands):
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button(f"Survey {name}", key=f"survey_{i}"):
-                survey(i)
-        with col2:
-            if st.button(f"Excavate {name}", key=f"excavate_{i}"):
-                excavate(i)
+    if not st.session_state.action_taken:
+        st.subheader("Choose an action")
+        for i, name in enumerate(st.session_state.islands):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.button(f"Survey {name}", key=f"survey_{i}", on_click=survey, args=(i,))
+            with col2:
+                st.button(f"Excavate {name}", key=f"excavate_{i}", on_click=excavate, args=(i,))
+    else:
+        # Show "Next Turn" button
+        st.button("➡️ Next Turn", on_click=next_turn)
 
-# Expedition Notes
+# Expedition notes
 st.subheader("📜 Expedition Notes")
 for i, name in enumerate(st.session_state.islands):
     status = []
