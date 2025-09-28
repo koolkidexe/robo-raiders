@@ -125,4 +125,16 @@ if not st.session_state.game_over:
                 st.button(f"Excavate {name}", key=f"excavate_{i}", on_click=excavate, args=(i,))
     else:
         # Show "Next Turn" button
-        st.button("➡️ Next
+        st.button("➡️ Next Turn", on_click=next_turn)
+
+# Expedition notes
+st.subheader("📜 Expedition Notes")
+for i, name in enumerate(st.session_state.islands):
+    status = []
+    if st.session_state.clues_found[i]:
+        status.append(st.session_state.clues_found[i])
+    if st.session_state.excavated[i]:
+        status.append("⛏ Excavated")
+    if not status:
+        status.append("Unknown")
+    st.write(f"- {name}: {' | '.join(status)}")
