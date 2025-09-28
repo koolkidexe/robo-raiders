@@ -7,10 +7,10 @@ if "initialized" not in st.session_state:
     st.session_state.correct_island = random.randint(0, 4)
     st.session_state.clues_found = [None] * 5
     st.session_state.excavated = [False] * 5
-    st.session_state.turns = 10
+    st.session_state.turns = 5
     st.session_state.score = 0
     st.session_state.game_over = False
-    st.session_state.message = "🌍 Welcome to the Archaeology Survey Game!"
+    st.session_state.message = "🌍 Welcome to Islands of Discovery!"
     st.session_state.action_taken = False
     st.session_state.initialized = True
 
@@ -69,7 +69,7 @@ def reset_game():
     st.session_state.correct_island = random.randint(0, 4)
     st.session_state.clues_found = [None] * 5
     st.session_state.excavated = [False] * 5
-    st.session_state.turns = 10
+    st.session_state.turns = 5
     st.session_state.score = 0
     st.session_state.game_over = False
     st.session_state.message = "🌍 New expedition started!"
@@ -82,7 +82,7 @@ def next_turn():
 
 # --- UI ---
 st.title("🏝️ Archaeology Survey Game")
-st.markdown("Help an archaeologist survey 5 islands and uncover the lost ruins. You have **10 turns**!")
+st.markdown("Help an archaeologist survey 5 islands and uncover the lost ruins. You have **5 turns**!")
 
 # Sidebar for stats
 st.sidebar.header("📊 Expedition Status")
@@ -107,7 +107,7 @@ with st.expander("ℹ️ How to Play"):
       - Correct island → **100 points** + ruins found 🎉  
       - Wrong island → random artifact worth points.  
 
-    **Turns**: Each action uses 1 turn. You start with **10 turns**.  
+    **Turns**: Each action uses 1 turn. You start with **5 turns**.  
     """)
 
 # Layout: left = actions, right = map
