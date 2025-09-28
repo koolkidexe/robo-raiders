@@ -18,13 +18,13 @@ if "initialized" not in st.session_state:
 def survey(island_index):
     distance = abs(island_index - st.session_state.correct_island)
     if distance == 0:
-        clue = "🏺 Ruins markings on the surface!"
+        clue = "🏺 Ruins markings"
     elif distance == 1:
-        clue = "🔎 Pottery fragments scattered around."
+        clue = "🔎 Pottery fragments"
     elif distance == 2:
-        clue = "🦴 Ancient bones buried shallowly."
+        clue = "🦴 Ancient bones"
     else:
-        clue = "🌊 Just shells and sand."
+        clue = "🌊 Just shells"
     st.session_state.clues_found[island_index] = clue
     st.session_state.message = f"Survey at {st.session_state.islands[island_index]}: {clue}"
     st.session_state.turns -= 1
@@ -48,7 +48,7 @@ def excavate(island_index):
             ("🪨 Broken pottery shard", 5),
             ("🪓 Old stone tool", 10),
             ("🦴 Animal bones", 3),
-            ("🌱 Charcoal from ancient fire", 7),
+            ("🌱 Charcoal remains", 7),
             ("❌ Nothing significant", 0)
         ]
         find, points = random.choice(finds)
@@ -92,49 +92,50 @@ st.sidebar.write(f"⏳ Turns Left: **{st.session_state.turns}**")
 if st.sidebar.button("🔄 Restart Game"):
     reset_game()
 
-# --- Instructions ---
+# Instructions
 with st.expander("ℹ️ How to Play"):
     st.markdown("""
     **Your Mission**: Find the hidden ruins on one of 5 islands before you run out of turns!
 
     - **Survey** 🔎 → Searches the surface.  
-      - 🏺 *Ruins markings*: You are on the correct island!  
-      - 🔎 *Pottery fragments*: Ruins are very close.  
-      - 🦴 *Bones*: Some activity nearby, but ruins are further away.  
-      - 🌊 *Shells and sand*: Nothing important nearby.  
+      - 🏺 *Ruins markings*: Correct island  
+      - 🔎 *Pottery*: Very close  
+      - 🦴 *Bones*: Some activity nearby  
+      - 🌊 *Shells*: Nothing nearby  
 
-    - **Excavate** ⛏ → Digs deeper into the island.  
-      - If it's the correct island, you win **100 points** and find the ruins! 🎉  
-      - If not, you may still find **artifacts** worth points (tools, pottery, bones, charcoal).  
+    - **Excavate** ⛏ → Digs deeper.  
+      - Correct island → **100 points** + ruins found 🎉  
+      - Wrong island → random artifact worth points.  
 
-    **Turns**: Each action (Survey or Excavate) uses 1 turn. You start with **10 turns**.  
+    **Turns**: Each action uses 1 turn. You start with **10 turns**.  
     """)
 
-# Show message
-st.info(st.session_state.message)
+# Layout: left = actions, right = map
+col_left, col_right = st.columns([2, 1])
 
-# Action buttons (only if no action taken yet and game not over)
-if not st.session_state.game_over:
-    if not st.session_state.action_taken:
-        st.subheader("Choose an action")
-        for i, name in enumerate(st.session_state.islands):
-            col1, col2 = st.columns(2)
-            with col1:
-                st.button(f"Survey {name}", key=f"survey_{i}", on_click=survey, args=(i,))
-            with col2:
-                st.button(f"Excavate {name}", key=f"excavate_{i}", on_click=excavate, args=(i,))
-    else:
-        # Show "Next Turn" button
-        st.button("➡️ Next Turn", on_click=next_turn)
+with col_left:
+    # Main message
+    st.info(st.session_state.message)
 
-# Expedition notes
-st.subheader("📜 Expedition Notes")
-for i, name in enumerate(st.session_state.islands):
-    status = []
-    if st.session_state.clues_found[i]:
-        status.append(st.session_state.clues_found[i])
-    if st.session_state.excavated[i]:
-        status.append("⛏ Excavated")
-    if not status:
-        status.append("Unknown")
-    st.write(f"- {name}: {' | '.join(status)}")
+    if not st.session_state.game_over:
+        if not st.session_state.action_taken:
+            st.subheader("Choose an action")
+            for i, name in enumerate(st.session_state.islands):
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.button(f"Survey {name}", key=f"survey_{i}", on_click=survey, args=(i,))
+                with col2:
+                    st.button(f"Excavate {name}", key=f"excavate_{i}", on_click=excavate, args=(i,))
+        else:
+            st.button("➡️ Next Turn", on_click=next_turn)
+
+with col_right:
+    st.subheader("🗺️ Expedition Map")
+    for i, name in enumerate(st.session_state.islands):
+        if st.session_state.excavated[i]:
+            status = "⛏ Excavated"
+        elif st.session_state.clues_found[i]:
+            status = st.session_state.clues_found[i]
+        else:
+            status = "❓ Unknown"
+        st.markdown(f"**{name}** → {status}")
