@@ -9,7 +9,6 @@ if "initialized" not in st.session_state:
     st.session_state.message = "Welcome! You’re managing an archaeology expedition. Raise money and discover artifacts!"
     st.session_state.game_over = False
     st.session_state.initialized = True
-    st.session_state.show_instructions = False
 
 def reset_game():
     st.session_state.turns = 10
@@ -17,9 +16,6 @@ def reset_game():
     st.session_state.artifacts = 0
     st.session_state.message = "New expedition started!"
     st.session_state.game_over = False
-
-def toggle_instructions():
-    st.session_state.show_instructions = not st.session_state.show_instructions
 
 def fundraise():
     if st.session_state.turns <= 0 or st.session_state.game_over:
@@ -76,7 +72,23 @@ def end_turn():
 st.title("🏛️ Archaeology Expedition: Funding Challenge")
 st.markdown("Your mission is to raise money and help archaeologists make discoveries!")
 
-# Display stats
+# 📘 How to Play dropdown
+with st.expander("ℹ️ How to Play"):
+    st.markdown("""
+    🎮 **Goal:**  
+    Complete your 10-turn expedition with **8+ artifacts** and **$10+** to win.  
+    If you succeed, you’ll unlock the coordinates **(32N, 48E)**!
+
+    **Actions:**
+    - 🪙 **Fundraise** → Gain random funds ($5–20)  
+    - 🎓 **Educate Schools** → Gain smaller, steady donations ($3–10)  
+    - ⛏️ **Excavate** → Costs $15, find 0–5 artifacts  
+
+    Each action costs **1 turn**.  
+    You start with **$50** and **10 turns**.
+    """)
+
+# Sidebar info
 st.sidebar.header("📊 Expedition Status")
 st.sidebar.write(f"💰 Funds: **${st.session_state.funds}**")
 st.sidebar.write(f"🏺 Artifacts: **{st.session_state.artifacts}**")
@@ -85,31 +97,13 @@ st.sidebar.write(f"⏳ Turns left: **{st.session_state.turns}**")
 if st.sidebar.button("🔄 Restart Game"):
     reset_game()
 
-# "How to Play" button
-st.button("ℹ️ How to Play", on_click=toggle_instructions)
-
-# Show instructions if toggled
-if st.session_state.show_instructions:
-    st.info("""
-    🎮 **How to Play**
-    - You have **10 turns** to complete your expedition.  
-    - Start with **$50** in funds.  
-    - Each action uses 1 turn.  
-    - **Fundraise**: Gain random funds between $5–20.  
-    - **Educate Schools**: Earn smaller but consistent donations ($3–10).  
-    - **Excavate**: Costs $15, but you can find artifacts (worth 0–5 each).  
-    - When all turns end:
-        - If you have **8+ artifacts** and **$10+**, you **win** and unlock the coordinates **(32N, 48E)**.  
-        - Otherwise, you lose the expedition.  
-    """)
-
-# Game message
+# --- Game message display ---
 if st.session_state.game_over and st.session_state.artifacts >= 8 and st.session_state.funds >= 10:
     st.success(st.session_state.message)
 else:
     st.info(st.session_state.message)
 
-# Game actions
+# --- Action buttons ---
 if not st.session_state.game_over:
     st.subheader("Choose your action")
     col1, col2, col3 = st.columns(3)
@@ -120,7 +114,7 @@ if not st.session_state.game_over:
     with col3:
         st.button("🎓 Educate Schools", on_click=educate)
 
-# Extra info
+# --- Educational info ---
 with st.expander("💡 Why funding matters"):
     st.markdown("""
     Archaeologists need money for:
