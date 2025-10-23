@@ -76,7 +76,7 @@ st.markdown("Your mission is to raise money and help archaeologists make discove
 with st.expander("ℹ️ How to Play"):
     st.markdown("""
     🎮 **Goal:**  
-    Complete your 10-turn expedition with over **8 artifacts** and over **$10** to win.  
+    Complete your 10-turn expedition with at least **8 artifacts** and at least **$10** to win.  
     If you succeed, you’ll unlock the coordinates to the geocache!
 
     **Actions:**
