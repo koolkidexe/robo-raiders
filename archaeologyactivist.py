@@ -9,6 +9,7 @@ if "initialized" not in st.session_state:
     st.session_state.message = "Welcome! You’re managing an archaeology expedition. Raise money and discover artifacts!"
     st.session_state.game_over = False
     st.session_state.initialized = True
+    st.session_state.show_instructions = False
 
 def reset_game():
     st.session_state.turns = 10
@@ -16,6 +17,9 @@ def reset_game():
     st.session_state.artifacts = 0
     st.session_state.message = "New expedition started!"
     st.session_state.game_over = False
+
+def toggle_instructions():
+    st.session_state.show_instructions = not st.session_state.show_instructions
 
 def fundraise():
     if st.session_state.turns <= 0 or st.session_state.game_over:
@@ -30,9 +34,7 @@ def excavate():
         return
     if st.session_state.funds < 15:
         st.session_state.message = "⚠️ Not enough funds to excavate. Try fundraising instead!"
-        # 🚫 no turn lost here
         return
-    # Excavation happens
     st.session_state.funds -= 15
     finds = [
         ("🪨 Broken pottery", 1),
@@ -57,7 +59,17 @@ def educate():
 def end_turn():
     st.session_state.turns -= 1
     if st.session_state.turns <= 0:
-        st.session_state.message = f"⏳ Expedition over! You collected **{st.session_state.artifacts} artifacts** and ended with **${st.session_state.funds}**."
+        if st.session_state.artifacts >= 8 and st.session_state.funds >= 10:
+            st.session_state.message = (
+                f"🏆 You won! You collected **{st.session_state.artifacts} artifacts** "
+                f"and ended with **${st.session_state.funds}**.\n\n"
+                f"📍 Here are the coordinates: **(32N, 48E)**"
+            )
+        else:
+            st.session_state.message = (
+                f"⏳ Expedition over! You collected **{st.session_state.artifacts} artifacts** "
+                f"and ended with **${st.session_state.funds}**."
+            )
         st.session_state.game_over = True
 
 # --- UI ---
@@ -73,30 +85,52 @@ st.sidebar.write(f"⏳ Turns left: **{st.session_state.turns}**")
 if st.sidebar.button("🔄 Restart Game"):
     reset_game()
 
-# Game message
-st.info(st.session_state.message)
+# "How to Play" button
+st.button("ℹ️ How to Play", on_click=toggle_instructions)
 
+# Show instructions if toggled
+if st.session_state.show_instructions:
+    st.info("""
+    🎮 **How to Play**
+    - You have **10 turns** to complete your expedition.  
+    - Start with **$50** in funds.  
+    - Each action uses 1 turn.  
+    - **Fundraise**: Gain random funds between $5–20.  
+    - **Educate Schools**: Earn smaller but consistent donations ($3–10).  
+    - **Excavate**: Costs $15, but you can find artifacts (worth 0–5 each).  
+    - When all turns end:
+        - If you have **8+ artifacts** and **$10+**, you **win** and unlock the coordinates **(32N, 48E)**.  
+        - Otherwise, you lose the expedition.  
+    """)
+
+# Game message
+if st.session_state.game_over and st.session_state.artifacts >= 8 and st.session_state.funds >= 10:
+    st.success(st.session_state.message)
+else:
+    st.info(st.session_state.message)
+
+# Game actions
 if not st.session_state.game_over:
     st.subheader("Choose your action")
     col1, col2, col3 = st.columns(3)
     with col1:
         st.button("📢 Fundraise", on_click=fundraise)
     with col2:
-        st.button("⛏️ Excavate", on_click=excavate)
+        st.button("⛏️ Excaviate", on_click=excavate)
     with col3:
         st.button("🎓 Educate Schools", on_click=educate)
 
-# Extra info for learning
-with st.expander("ℹ️ Why funding matters"):
+# Extra info
+with st.expander("💡 Why funding matters"):
     st.markdown("""
     Archaeologists need money for:
-    - 🔨 Excavation tools
-    - 🚐 Transportation
-    - 🧑‍🔬 Lab work
-    - 📚 Education programs
+    - 🔨 Excavation tools  
+    - 🚐 Transportation  
+    - 🧑‍🔬 Lab work  
+    - 📚 Education programs  
     
     Without funding:
-    - 🚫 Sites go unexplored
-    - 🏺 Artifacts decay or get looted
-    - 🧩 History is lost forever
+    - 🚫 Sites go unexplored  
+    - 🏺 Artifacts decay or get looted  
+    - 🧩 History is lost forever  
     """)
