@@ -59,7 +59,7 @@ def end_turn():
             st.session_state.message = (
                 f"🏆 You won! You collected **{st.session_state.artifacts} artifacts** "
                 f"and ended with **${st.session_state.funds}**.\n\n"
-                f"📍 Here are the coordinates: **(32N, 48E)**"
+                f"📍 Here are the coordinates: **(41°43'27" N, 72°33'55" W)**"
             )
         else:
             st.session_state.message = (
